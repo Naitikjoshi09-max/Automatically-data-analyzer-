@@ -1,220 +1,336 @@
-# Byte-compiled / optimized / DLL files
-__pycache__/
-*.py[codz]
-*$py.class
+import streamlit as st
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+import seaborn as sns
+import io
+import streamlit as st
 
-# C extensions
-*.so
+# Password License Lock
+if "authenticated" not in st.session_state:
+    st.session_state["authenticated"] = False
 
-# Distribution / packaging
-.Python
-build/
-develop-eggs/
-dist/
-downloads/
-eggs/
-.eggs/
-lib/
-lib64/
-parts/
-sdist/
-var/
-wheels/
-share/python-wheels/
-*.egg-info/
-.installed.cfg
-*.egg
-MANIFEST
+if not st.session_state["authenticated"]:
+    st.set_page_config(page_title="License Verification", page_icon="🔒")
+    st.title("🔒 License Verification Required")
+    st.write("Please enter your customer license key to access the dashboard.")
+    
+    user_key = st.text_input("Enter License Key:", type="password")
+    if st.button("Unlock Studio"):
+        if user_key == "VIP-PASS-2026":  # Set your password here
+            st.session_state["authenticated"] = True
+            st.rerun()
+        else:
+            st.error("Invalid key. Please check your purchase receipt.")
+    st.stop()
+# ---------------------------------------------------------
+# Page Configuration
+# ---------------------------------------------------------
+st.set_page_config(
+    page_title="Vibrant Analytics Studio",
+    page_icon="🎨",
+    layout="wide",
+    initial_sidebar_state="expanded"
+)
 
-# PyInstaller
-#   Usually these files are written by a python script from a template
-#   before PyInstaller builds the exe, so as to inject date/other infos into it.
-*.manifest
-*.spec
+# ---------------------------------------------------------
+# Custom Modern Visual Styling (CSS)
+# ---------------------------------------------------------
+st.markdown("""
+<style>
+    /* Main Background & Fonts */
+    .stApp {
+        background-color: #f8fafc;
+    }
+    
+    /* Title Styling */
+    .main-title {
+        font-size: 2.2rem;
+        font-weight: 800;
+        background: linear-gradient(90deg, #4f46e5, #06b6d4, #ec4899);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        margin-bottom: 0.5rem;
+    }
+    
+    /* Gradient Metric Cards */
+    .metric-card {
+        background: linear-gradient(135deg, #ffffff 0%, #f1f5f9 100%);
+        border-radius: 16px;
+        padding: 20px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+        border-left: 6px solid #6366f1;
+        transition: transform 0.2s ease;
+    }
+    .metric-card-1 { border-left-color: #6366f1; }
+    .metric-card-2 { border-left-color: #ec4899; }
+    .metric-card-3 { border-left-color: #10b981; }
+    .metric-card-4 { border-left-color: #f59e0b; }
+    
+    .metric-title {
+        font-size: 0.85rem;
+        font-weight: 700;
+        color: #64748b;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    .metric-value {
+        font-size: 1.8rem;
+        font-weight: 800;
+        color: #0f172a;
+        margin-top: 4px;
+    }
 
-# Installer logs
-pip-log.txt
-pip-delete-this-directory.txt
+    /* Key Insights Banner */
+    .insight-box {
+        background: linear-gradient(135deg, #e0e7ff 0%, #fae8ff 100%);
+        border-radius: 12px;
+        padding: 16px 20px;
+        border: 1px solid #c7d2fe;
+        color: #3730a3;
+        font-weight: 600;
+        margin-bottom: 20px;
+    }
+</style>
+""", unsafe_allow_html=True)
 
-# Unit test / coverage reports
-htmlcov/
-.tox/
-.nox/
-.coverage
-.coverage.*
-.cache
-nosetests.xml
-coverage.xml
-*.cover
-*.py.cover
-*.lcov
-.hypothesis/
-.pytest_cache/
-cover/
+# ---------------------------------------------------------
+# Preset Datasets Generator
+# ---------------------------------------------------------
+@st.cache_data
+def get_preset_data(preset_type):
+    np.random.seed(42)
+    dates = pd.date_range(start="2026-01-01", periods=90, freq="D")
+    
+    if preset_type == "🛒 E-Commerce Sales":
+        items = ["Wireless Headphones", "Smartwatch", "Mechanical Keyboard", "USB-C Hub", "Ergonomic Chair"]
+        regions = ["North America", "Europe", "Asia-Pacific", "Latin America"]
+        return pd.DataFrame({
+            "Date": np.random.choice(dates, 300),
+            "Product": np.random.choice(items, 300),
+            "Region": np.random.choice(regions, 300),
+            "Units_Sold": np.random.randint(1, 20, 300),
+            "Price": np.random.uniform(25.0, 250.0, 300).round(2),
+            "Revenue": np.random.uniform(50.0, 1500.0, 300).round(2)
+        })
+    elif preset_type == "📢 Marketing Campaigns":
+        channels = ["Google Ads", "Meta Ads", "TikTok Ads", "Email Marketing", "LinkedIn"]
+        return pd.DataFrame({
+            "Date": np.random.choice(dates, 250),
+            "Channel": np.random.choice(channels, 250),
+            "Impressions": np.random.randint(5000, 100000, 250),
+            "Clicks": np.random.randint(100, 4000, 250),
+            "Ad_Spend": np.random.uniform(100.0, 2500.0, 250).round(2),
+            "Conversions": np.random.randint(5, 150, 250)
+        })
+    else:  # Personal Finance
+        categories = ["Housing", "Groceries", "Dining Out", "Subscriptions", "Utilities", "Travel"]
+        return pd.DataFrame({
+            "Date": np.random.choice(dates, 200),
+            "Category": np.random.choice(categories, 200),
+            "Payment_Method": np.random.choice(["Credit Card", "Debit Card", "Bank Transfer"], 200),
+            "Amount": np.random.uniform(10.0, 450.0, 200).round(2)
+        })
 
-# Translations
-*.mo
-*.pot
+def fig_to_bytes(fig):
+    buf = io.BytesIO()
+    fig.savefig(buf, format="png", dpi=300, bbox_inches="tight")
+    buf.seek(0)
+    return buf
 
-# Django stuff:
-*.log
-local_settings.py
-db.sqlite3
-db.sqlite3-journal
+# ---------------------------------------------------------
+# Sidebar Configuration & Controls
+# ---------------------------------------------------------
+st.sidebar.title("🎨 Visual Studio")
 
-# Flask stuff:
-instance/
-.webassets-cache
+# Color Palette Picker
+palette_choice = st.sidebar.selectbox(
+    "🌈 Select Color Theme",
+    ["Vibrant Neon", "Sunset Coral", "Emerald Mint", "Cyberpunk Dark", "Ocean Blue"],
+    help="Changes chart color accents across the entire dashboard."
+)
 
-# Scrapy stuff:
-.scrapy
+palette_map = {
+    "Vibrant Neon": ["#6366f1", "#ec4899", "#06b6d4", "#f59e0b", "#10b981"],
+    "Sunset Coral": ["#ff6b6b", "#fca311", "#ff85a1", "#e63946", "#f1faee"],
+    "Emerald Mint": ["#059669", "#10b981", "#34d399", "#0284c7", "#06b6d4"],
+    "Cyberpunk Dark": ["#ff007f", "#7b2cbf", "#00f5d4", "#f15bb5", "#fee440"],
+    "Ocean Blue": ["#1e3a8a", "#2563eb", "#3b82f6", "#60a5fa", "#93c5fd"]
+}
+selected_palette = palette_map[palette_choice]
 
-# Sphinx documentation
-docs/_build/
+st.sidebar.markdown("---")
+st.sidebar.subheader("📂 Data Source")
 
-# PyBuilder
-.pybuilder/
-target/
+data_mode = st.sidebar.radio("Choose Mode:", ["Upload Custom CSV", "Use Demo Templates"])
 
-# Jupyter Notebook
-.ipynb_checkpoints
+if data_mode == "Upload Custom CSV":
+    uploaded_file = st.sidebar.file_uploader("Drop your CSV file here", type=["csv"])
+    if uploaded_file is not None:
+        try:
+            df = pd.read_csv(uploaded_file)
+            st.sidebar.success("File uploaded successfully!")
+        except Exception as e:
+            st.sidebar.error(f"Error loading CSV: {e}")
+            df = get_preset_data("🛒 E-Commerce Sales")
+    else:
+        st.sidebar.info("Upload a file above or switch to Demo Templates.")
+        df = get_preset_data("🛒 E-Commerce Sales")
+else:
+    preset_choice = st.sidebar.selectbox(
+        "Select Demo Dataset",
+        ["🛒 E-Commerce Sales", "📢 Marketing Campaigns", "💳 Personal Spending"]
+    )
+    df = get_preset_data(preset_choice)
 
-# IPython
-profile_default/
-ipython_config.py
+# Detect Column Types
+numeric_cols = df.select_dtypes(include=[np.number]).columns.tolist()
+categorical_cols = df.select_dtypes(include=['object', 'category']).columns.tolist()
+date_cols = [c for c in df.columns if 'date' in c.lower() or 'time' in c.lower()]
 
-# pyenv
-#   For a library or package, you might want to ignore these files since the code is
-#   intended to run in multiple environments; otherwise, check them in:
-# .python-version
+# Convert detected date columns
+for dc in date_cols:
+    df[dc] = pd.to_datetime(df[dc], errors='coerce')
 
-# pipenv
-#   According to pypa/pipenv#598, it is recommended to include Pipfile.lock in version control.
-#   However, in case of collaboration, if having platform-specific dependencies or dependencies
-#   having no cross-platform support, pipenv may install dependencies that don't work, or not
-#   install all needed dependencies.
-# Pipfile.lock
+# ---------------------------------------------------------
+# Main UI Header
+# ---------------------------------------------------------
+st.markdown('<div class="main-title">✨ Universal Business Analytics Studio</div>', unsafe_allow_html=True)
+st.markdown("Automated insights, vibrant visualizations, and exportable reports in one click.")
 
-# uv
-#   Similar to Pipfile.lock, it is generally recommended to include uv.lock in version control.
-#   This is especially recommended for binary packages to ensure reproducibility, and is more
-#   commonly ignored for libraries.
-# uv.lock
+# Dynamic Executive Insight Summary
+if numeric_cols and categorical_cols:
+    top_cat_col = categorical_cols[0]
+    top_num_col = numeric_cols[0]
+    top_performer = df.groupby(top_cat_col)[top_num_col].sum().idxmax()
+    max_val = df.groupby(top_cat_col)[top_num_col].sum().max()
+    
+    st.markdown(f"""
+    <div class="insight-box">
+        🚀 <b>Executive Takeaway:</b> Highest total <b>{top_num_col}</b> belongs to 
+        <b>{top_performer}</b> with a total value of <b>{max_val:,.2f}</b> across current records.
+    </div>
+    """, unsafe_allow_html=True)
 
-# poetry
-#   Similar to Pipfile.lock, it is generally recommended to include poetry.lock in version control.
-#   This is especially recommended for binary packages to ensure reproducibility, and is more
-#   commonly ignored for libraries.
-#   https://python-poetry.org/docs/basic-usage/#commit-your-poetrylock-file-to-version-control
-# poetry.lock
-# poetry.toml
+# ---------------------------------------------------------
+# Colorful KPI Metric Cards
+# ---------------------------------------------------------
+st.subheader("📌 Key Performance Indicators")
+k1, k2, k3, k4 = st.columns(4)
 
-# pdm
-#   Similar to Pipfile.lock, it is generally recommended to include pdm.lock in version control.
-#   pdm recommends including project-wide configuration in pdm.toml, but excluding .pdm-python.
-#   https://pdm-project.org/en/latest/usage/project/#working-with-version-control
-# pdm.lock
-# pdm.toml
-.pdm-python
-.pdm-build/
+with k1:
+    st.markdown(f"""
+    <div class="metric-card metric-card-1">
+        <div class="metric-title">Total Records</div>
+        <div class="metric-value">{len(df):,}</div>
+    </div>
+    """, unsafe_allow_html=True)
 
-# pixi
-#   Similar to Pipfile.lock, it is generally recommended to include pixi.lock in version control.
-# pixi.lock
-#   Pixi creates a virtual environment in the .pixi directory, just like venv module creates one
-#   in the .venv directory. It is recommended not to include this directory in version control.
-.pixi/*
-!.pixi/config.toml
+with k2:
+    val = f"{df[numeric_cols[0]].sum():,.2f}" if numeric_cols else "N/A"
+    lbl = numeric_cols[0] if numeric_cols else "Metric 1"
+    st.markdown(f"""
+    <div class="metric-card metric-card-2">
+        <div class="metric-title">Total {lbl}</div>
+        <div class="metric-value">{val}</div>
+    </div>
+    """, unsafe_allow_html=True)
 
-# PEP 582; used by e.g. github.com/David-OConnor/pyflow and github.com/pdm-project/pdm
-__pypackages__/
+with k3:
+    val = f"{df[numeric_cols[0]].mean():,.2f}" if numeric_cols else "N/A"
+    st.markdown(f"""
+    <div class="metric-card metric-card-3">
+        <div class="metric-title">Average {lbl}</div>
+        <div class="metric-value">{val}</div>
+    </div>
+    """, unsafe_allow_html=True)
 
-# Celery stuff
-celerybeat-schedule*
-celerybeat.pid
+with k4:
+    cat_count = len(categorical_cols)
+    num_count = len(numeric_cols)
+    st.markdown(f"""
+    <div class="metric-card metric-card-4">
+        <div class="metric-title">Data Attributes</div>
+        <div class="metric-value">{num_count} Num / {cat_count} Cat</div>
+    </div>
+    """, unsafe_allow_html=True)
 
-# Redis
-*.rdb
-*.aof
-*.pid
+st.markdown("<br>", unsafe_allow_html=True)
 
-# RabbitMQ
-mnesia/
-rabbitmq/
-rabbitmq-data/
+# ---------------------------------------------------------
+# Interactive Visualization Section
+# ---------------------------------------------------------
+st.subheader("📊 Interactive Visual Studio")
 
-# ActiveMQ
-activemq-data/
+if numeric_cols:
+    col_chart1, col_chart2 = st.columns(2)
 
-# SageMath parsed files
-*.sage.py
+    # Chart 1: Categorical Bar Chart
+    with col_chart1:
+        st.markdown("##### 🏷️ Category Breakdown")
+        cat_select = st.selectbox("Category Field", options=categorical_cols if categorical_cols else df.columns, key="c1")
+        num_select = st.selectbox("Metric Field", options=numeric_cols, key="n1")
 
-# Environments
-.env
-.envrc
-.venv
-env/
-venv/
-ENV/
-env.bak/
-venv.bak/
+        grouped = df.groupby(cat_select)[num_select].sum().reset_index().sort_values(by=num_select, ascending=False).head(10)
 
-# Spyder project settings
-.spyderproject
-.spyproject
+        fig, ax = plt.subplots(figsize=(7, 4.2))
+        sns.barplot(data=grouped, x=num_select, y=cat_select, palette=sns.color_palette(selected_palette), ax=ax)
+        ax.set_title(f"Top 10 {cat_select} by {num_select}", fontsize=11, fontweight="bold")
+        ax.set_xlabel(num_select)
+        ax.set_ylabel(cat_select)
+        
+        for p in ax.patches:
+            width = p.get_width()
+            ax.annotate(f"{width:,.0f}", (width, p.get_y() + p.get_height() / 2.),
+                        ha='left', va='center', xytext=(5, 0), textcoords='offset points', fontsize=8)
+            
+        st.pyplot(fig)
+        st.download_button("📥 Download Bar Chart", data=fig_to_bytes(fig), file_name="bar_chart.png", mime="image/png")
 
-# Rope project settings
-.ropeproject
+    # Chart 2: Distribution / Correlation
+    with col_chart2:
+        st.markdown("##### 📈 Distribution & Spread")
+        dist_select = st.selectbox("Select Numeric Column", options=numeric_cols, key="d1")
 
-# mkdocs/Zensical documentation
-/site
+        fig, ax = plt.subplots(figsize=(7, 4.2))
+        sns.histplot(df[dist_select].dropna(), kde=True, color=selected_palette[0], ax=ax)
+        ax.set_title(f"Distribution Density of {dist_select}", fontsize=11, fontweight="bold")
+        ax.set_xlabel(dist_select)
+        
+        st.pyplot(fig)
+        st.download_button("📥 Download Distribution Chart", data=fig_to_bytes(fig), file_name="distribution.png", mime="image/png")
 
-# mypy
-.mypy_cache/
-.dmypy.json
-dmypy.json
+    st.markdown("---")
 
-# Pyre type checker
-.pyre/
+    # Time Series Section (if date column exists)
+    if date_cols:
+        st.subheader("📅 Time-Series Trends")
+        active_date_col = date_cols[0]
+        ts_metric = st.selectbox("Select Trend Metric", options=numeric_cols, key="ts_m")
 
-# pytype static type analyzer
-.pytype/
+        ts_df = df.groupby(df[active_date_col].dt.date)[ts_metric].sum().reset_index()
+        ts_df["Rolling_Avg"] = ts_df[ts_metric].rolling(window=7, min_periods=1).mean()
 
-# Cython debug symbols
-cython_debug/
+        fig, ax = plt.subplots(figsize=(12, 3.8))
+        ax.plot(ts_df[active_date_col], ts_df[ts_metric], color=selected_palette[1], alpha=0.35, label="Daily Total", marker="o", markersize=3)
+        ax.plot(ts_df[active_date_col], ts_df["Rolling_Avg"], color=selected_palette[0], linewidth=2.5, label="7-Day Moving Average")
+        ax.set_title(f"Timeline Trend of {ts_metric}", fontsize=12, fontweight="bold")
+        ax.legend()
+        plt.xticks(rotation=30)
+        st.pyplot(fig)
 
-# PyCharm
-#   JetBrains specific template is maintained in a separate JetBrains.gitignore that can
-#   be found at https://github.com/github/gitignore/blob/main/Global/JetBrains.gitignore
-#   and can be added to the global gitignore or merged into this file.  For a more nuclear
-#   option (not recommended) you can uncomment the following to ignore the entire idea folder.
-# .idea/
+st.markdown("---")
 
-# Abstra
-#   Abstra is an AI-powered process automation framework.
-#   Ignore directories containing user credentials, local state, and settings.
-#   Learn more at https://abstra.io/docs
-.abstra/
+# ---------------------------------------------------------
+# Raw Data Explorer & Export
+# ---------------------------------------------------------
+st.subheader("📋 Dataset Explorer")
+st.dataframe(df, use_container_width=True)
 
-# Visual Studio Code
-#   Visual Studio Code specific template is maintained in a separate VisualStudioCode.gitignore that
-#   can be found at https://github.com/github/gitignore/blob/main/Global/VisualStudioCode.gitignore
-#   and can be added to the global gitignore or merged into this file. However, if you prefer, you
-#   could uncomment the following to ignore the entire vscode folder
-# .vscode/
-# Temporary file for partial code execution
-tempCodeRunnerFile.py
-
-# Ruff stuff:
-.ruff_cache/
-
-# PyPI configuration file
-.pypirc
-
-# Marimo
-marimo/_static/
-marimo/_lsp/
-__marimo__/
-
-# Streamlit
-.streamlit/secrets.toml
+csv_data = df.to_csv(index=False).encode('utf-8')
+st.download_button(
+    label="💾 Export Processed CSV Data",
+    data=csv_data,
+    file_name="analytics_export.csv",
+    mime="text/csv"
+)
